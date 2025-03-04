@@ -1,226 +1,412 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion du Parking</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Reset des styles par défaut */
-        body, h1, p, form, input, button {
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Style général */
         body {
-            background-color: #f4f4f4;
+            background-color: #f5f7fa;
             color: #333;
-            padding: 20px;
+            line-height: 1.6;
         }
 
         header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
         }
 
         main {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 1.5rem 3rem;
         }
 
+        section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light-color);
+        }
+
+        /* Messages d'alerte */
+        .message {
+            padding: 15px;
+            margin: 0 0 2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .success::before {
+            content: "\f058"; /* check-circle icon */
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .error::before {
+            content: "\f057"; /* times-circle icon */
+        }
+
+        /* Informations du parking */
         #parking-info {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        #parking-lot {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .parking-spaces {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 places par ligne */
-            gap: 10px;
-        }
-
-        .parking-space {
-            background-color: #e0e0e0;
-            padding: 10px;
-            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
             text-align: center;
         }
 
-        .parking-space.occupied {
-            background-color: #ff6b6b;
-            color: white;
+        #parking-info p {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            background-color: var(--light-color);
+            font-size: 1.1rem;
         }
 
-        #parking-controls {
-            background-color: #fff;
-            padding: 20px;
+        #parking-info span {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            color: var(--secondary-color);
+        }
+
+        #parking-info p:nth-child(2) span {
+            color: var(--success-color);
+        }
+
+        #parking-info p:nth-child(3) span {
+            color: var(--danger-color);
+        }
+
+        /* Représentation visuelle du parking */
+        .parking-spaces {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+
+        .parking-space {
+            background-color: var(--light-color);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .parking-space::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+            content: "\f540"; /* parking icon */
+        }
+
+        .parking-space.occupied {
+            background-color: rgba(231, 76, 60, 0.15);
+            border: 1px solid var(--danger-color);
+        }
+
+        .parking-space.occupied::before {
+            content: "\f1b9"; /* car icon */
+            color: var(--danger-color);
+        }
+
+        /* Liste des voitures */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(236, 240, 241, 0.5);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        /* Formulaires */
+        #parking-controls {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 1rem;
         }
 
         form {
-            margin-bottom: 10px;
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
         }
 
-        input {
+        input[type="text"] {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
 
         button {
-            width: 100%;
-            padding: 10px;
-            background-color: #28a745;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         button:hover {
-            background-color: #218838;
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button[type="submit"][name="action"][value="enter"]::before {
+            content: "\f090"; /* sign-in icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        button[type="submit"][name="action"][value="exit"]::before {
+            content: "\f08b"; /* sign-out icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #parking-info {
+                flex-direction: column;
+            }
+            
+            .parking-spaces {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Gestion du Parking</h1>
+        <h1><i class="fas fa-parking"></i> Gestion du Parking</h1>
     </header>
 
     <main>
+        <!-- Message d'alerte -->
+        <c:if test="${not empty message}">
+            <div class="message ${message.contains('succès') ? 'success' : 'error'}">
+                ${message}
+            </div>
+        </c:if>
+
         <!-- Section pour afficher les informations du parking -->
         <section id="parking-info">
-            <p>Nombre total de places : <span id="total-spaces">10</span></p>
-            <p>Places disponibles : <span id="available-spaces">10</span></p>
-            <p>Places occupées : <span id="occupied-spaces">0</span></p>
+            <p>
+                <i class="fas fa-car-side"></i> Nombre total de places
+                <span>${totalSpaces}</span>
+            </p>
+            <p>
+                <i class="fas fa-check-circle"></i> Places disponibles
+                <span>${availableSpaces}</span>
+            </p>
+            <p>
+                <i class="fas fa-car"></i> Places occupées
+                <span>${occupiedSpaces}</span>
+            </p>
         </section>
 
         <!-- Section pour représenter visuellement les places de parking -->
         <section id="parking-lot">
+            <h2><i class="fas fa-map-marker-alt"></i> État du parking</h2>
             <div class="parking-spaces">
-                <!-- Les places de parking seront générées dynamiquement en JavaScript -->
+                <c:forEach begin="1" end="${totalSpaces}" varStatus="loop">
+                    <c:set var="isOccupied" value="false" />
+                    <c:set var="carInfo" value="" />
+                    
+                    <c:forEach items="${cars}" var="car" varStatus="carStatus">
+                        <c:if test="${carStatus.index + 1 == loop.index}">
+                            <c:set var="isOccupied" value="true" />
+                            <c:set var="carInfo" value="${car.licensePlate}" />
+                        </c:if>
+                    </c:forEach>
+                    
+                    <div class="parking-space ${isOccupied ? 'occupied' : ''}">
+                        Place ${loop.index}
+                        <div>${isOccupied ? carInfo : 'Libre'}</div>
+                    </div>
+                </c:forEach>
             </div>
+        </section>
+
+        <!-- Liste des voitures dans le parking -->
+        <section id="cars-list">
+            <h2><i class="fas fa-list"></i> Voitures actuellement dans le parking</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Plaque d'immatriculation</th>
+                        <th>Heure d'entrée</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach items="${cars}" var="car">
+                        <tr>
+                            <td>${car.id}</td>
+                            <td>${car.licensePlate}</td>
+                            <td>${car.entryTime}</td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
         </section>
 
         <!-- Formulaire pour ajouter ou retirer une voiture -->
         <section id="parking-controls">
-            <form id="add-car-form">
-                <label for="license-plate">Plaque d'immatriculation :</label>
-                <input type="text" id="license-plate" name="license-plate" required>
-                <button type="submit">Ajouter une voiture</button>
-            </form>
+            <h2><i class="fas fa-cogs"></i> Contrôles</h2>
+            
+            <div class="controls-container">
+                <form action="${pageContext.request.contextPath}/add-car" method="post">
+                    <input type="hidden" name="action" value="enter">
+                    <label for="license-plate-enter">Plaque d'immatriculation :</label>
+                    <input type="text" id="license-plate-enter" name="licensePlate" placeholder="TH_3453" required>
+                    <button type="submit">Faire entrer une voiture</button>
+                </form>
 
-            <form id="remove-car-form">
-                <label for="remove-license-plate">Plaque d'immatriculation :</label>
-                <input type="text" id="remove-license-plate" name="remove-license-plate" required>
-                <button type="submit">Retirer une voiture</button>
-            </form>
+                <form action="${pageContext.request.contextPath}/remove-car" method="post">
+                    <input type="hidden" name="action" value="exit">
+                    <label for="license-plate-exit">Plaque d'immatriculation :</label>
+                    <input type="text" id="license-plate-exit" name="licensePlate" placeholder="TH_3453" required>
+                    <button type="submit">Faire sortir une voiture</button>
+                </form>
+            </div>
         </section>
-
-        <!-- Affichage des messages dynamiques -->
-        <c:if test="${not empty message}">
-            <p>${message}</p>
-        </c:if>
     </main>
 
-    <script>
-        // Données du parking
-        let totalSpaces = 10;
-        let availableSpaces = 10;
-        let occupiedSpaces = 0;
-        let cars = [];
-
-        // Éléments du DOM
-        const totalSpacesElement = document.getElementById("total-spaces");
-        const availableSpacesElement = document.getElementById("available-spaces");
-        const occupiedSpacesElement = document.getElementById("occupied-spaces");
-        const parkingSpacesElement = document.querySelector(".parking-spaces");
-        const addCarForm = document.getElementById("add-car-form");
-        const removeCarForm = document.getElementById("remove-car-form");
-
-        // Mettre à jour l'affichage des places de parking
-        function updateParkingDisplay() {
-            // Mettre à jour les informations
-            totalSpacesElement.textContent = totalSpaces;
-            availableSpacesElement.textContent = availableSpaces;
-            occupiedSpacesElement.textContent = occupiedSpaces;
-
-            // Générer les places de parking
-            parkingSpacesElement.innerHTML = "";
-            for (let i = 0; i < totalSpaces; i++) {
-                const space = document.createElement("div");
-                space.classList.add("parking-space");
-                if (cars[i]) {
-                    space.classList.add("occupied");
-                    space.textContent = cars[i];
-                } else {
-                    space.textContent = "Libre";
-                }
-                parkingSpacesElement.appendChild(space);
-            }
-        }
-
-        // Ajouter une voiture
-        addCarForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-            const licensePlate = document.getElementById("license-plate").value;
-
-            // Vérifier si la plaque d'immatriculation est déjà présente
-            if (cars.includes(licensePlate)) {
-                alert("Cette voiture est déjà dans le parking !");
-            } else if (availableSpaces > 0) {
-                cars.push(licensePlate);
-                availableSpaces--;
-                occupiedSpaces++;
-                updateParkingDisplay();
-                alert(`Voiture ${licensePlate} ajoutée avec succès !`);
-            } else {
-                alert("Parking plein !");
-            }
-
-            addCarForm.reset();
-        });
-
-        // Retirer une voiture
-        removeCarForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-            const licensePlate = document.getElementById("remove-license-plate").value;
-            const index = cars.indexOf(licensePlate);
-
-            if (index !== -1) {
-                cars.splice(index, 1);
-                availableSpaces++;
-                occupiedSpaces--;
-                updateParkingDisplay();
-                alert(`Voiture ${licensePlate} retirée avec succès !`);
-            } else {
-                alert("Voiture non trouvée !");
-            }
-
-            removeCarForm.reset();
-        });
-
-        // Initialiser l'affichage
-        updateParkingDisplay();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </body>
 </html>
