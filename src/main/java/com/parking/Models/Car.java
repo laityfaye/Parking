@@ -1,6 +1,7 @@
 package com.parking.Models;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Car {
     private Long id;
@@ -33,7 +34,11 @@ public class Car {
     public LocalDateTime getEntryTime() {
         return entryTime;
     }
-
+    
+    public String getFormattedEntryTime() {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            return entryTime.format(formatter);
+        }
     @Override
     public String toString() {
         return "Car{" +

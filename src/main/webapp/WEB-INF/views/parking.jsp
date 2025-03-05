@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -378,7 +379,7 @@
                         <tr>
                             <td>${car.id}</td>
                             <td>${car.licensePlate}</td>
-                            <td>${car.entryTime}</td>
+                            <td>${car.formattedEntryTime}</td>
                         </tr>
                     </c:forEach>
                 </tbody>
@@ -404,6 +405,44 @@
                     <button type="submit">Faire sortir une voiture</button>
                 </form>
             </div>
+        </section>
+        <section id="parking-logs">
+            <h2><i class="fas fa-history"></i> Historique de Stationnement</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Plaque d'immatriculation</th>
+                        <th>Heure d'entrée</th>
+                        <th>Heure de sortie</th>
+                        <th>Durée (minutes)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:if test="${not empty parkingLogs}">
+                        <c:forEach items="${parkingLogs}" var="log">
+                            <tr>
+                                <td>${log.id}</td>
+                                <td>${log.licensePlate}</td>
+                                <td>
+                                    <fmt:parseDate value="${log.entryTime}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedEntryTime" type="both" />
+                                    <fmt:formatDate value="${parsedEntryTime}" pattern="dd/MM/yyyy HH:mm:ss" />
+                                </td>
+                                <td>
+                                    <fmt:parseDate value="${log.exitTime}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedExitTime" type="both" />
+                                    <fmt:formatDate value="${parsedExitTime}" pattern="dd/MM/yyyy HH:mm:ss" />
+                                </td>
+                                <td>${log.durationMinutes}</td>
+                            </tr>
+                        </c:forEach>
+                    </c:if>
+                    <c:if test="${empty parkingLogs}">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Aucun historique de stationnement</td>
+                        </tr>
+                    </c:if>
+                </tbody>
+            </table>
         </section>
     </main>
 
